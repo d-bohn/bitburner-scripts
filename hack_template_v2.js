@@ -2,17 +2,16 @@
 export async function main(ns) {
     
     const args = ns.flags([['help', false]]);
-  
     
-    if(args.help || !hostname) {
+    var target = args._[0];
+    
+    if(args.help || !target) {
         ns.tprint("This script will generate money by hacking a target server.");
         ns.tprint(`USAGE: run ${ns.getScriptName()} SERVER_NAME`);
         ns.tprint("Example:");
         ns.tprint(`> run ${ns.getScriptName()} n00dles`);
         return;
     }
-  
-    var target = args._[0];
 
     if (typeof target === "undefined") {
         target = "n00dles"
@@ -32,8 +31,20 @@ export async function main(ns) {
 
     // If we have the BruteSSH.exe program, use it to open the SSH Port
     // on the target server
-    if (ns.fileExists("BruteSSH.exe", "home")) {
-        ns.brutessh(target);
+    if (ns.fileExists('BruteSSH.exe')) {
+        ns.brutessh(server);
+    }
+    if (ns.fileExists('FTPCrack.exe')) {
+        ns.ftpcrack(server);
+    }
+    if (ns.fileExists('relaySMTP.exe')) {
+        ns.relaysmtp(server);
+    }
+    if (ns.fileExists('HTTPWorm.exe')) {
+        ns.httpworm(server);
+    }
+    if (ns.fileExists('SQLInject.exe')) {
+        ns.sqlinject(server);
     }
 
     // Get root access to target server
