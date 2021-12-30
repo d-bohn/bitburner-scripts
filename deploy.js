@@ -21,6 +21,11 @@ export async function main(ns) {
 		ns.tprint(`Script '${script}' does not exist. Aborting.`);
 		return;
 	}
+	
+	if (!ns.hasRootAccess(host)) {
+        	ns.tprint("Root access denied. Attempting to NUKE.");
+		ns.nuke(host);
+	}
 
 	const threads = Math.floor((ns.getServerMaxRam(host) - ns.getServerUsedRam(host)) / ns.getScriptRam(script));
 	ns.tprint(`Launching script '${script}' on server '${host}' with ${threads} threads and the following arguments: ${script_args}`);
