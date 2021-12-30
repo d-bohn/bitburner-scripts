@@ -21,7 +21,11 @@ export async function main(ns) {
 
             await ns.scp("hack_template_v2.js", hostname);
 
-            ns.exec("hack_template_v2.js", hostname, 3);
+            let scriptRam = ns.getScriptRam("hack_template_v2.js");
+            let serverRam = ns.getServerMaxRam(hostname);
+            let threads = Math.floor(serverRam / scriptRam);
+
+            ns.exec("hack_template_v2.js", hostname, 2, "n00dles");
 
             ++i;
         }
