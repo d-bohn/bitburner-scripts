@@ -1,23 +1,67 @@
 /** @param {NS} ns **/
 export async function main(ns) {
-    // How much RAM each purchased server will have. In this case, it'll
-    // be 8GB.
-    const ram = 8;
+    // Constants
+    const max_servers = ns.getPurchasedServerLimit();
 
-    // Iterator we'll use for our loop
-    let i = ns.args[0];
+    // Args
+    const args = ns.flags([
+        ['help', false]
+    ]);
+
+    let i = args._[0];
+    const ram = args._[1];
+    const server_to_hack = args._[2]
+
+    if (args.help) {
+        ns.tprint(`USAGE: run ${ns.getScriptName()} STARTNUM RAM SERVER_TO_HACK`);
+        ns.tprint("Example:");
+        ns.tprint(`> run ${ns.getScriptName()} 0 16 n00dles`);
+        return;
+    }
 
     // Continuously try to purchase servers until we've reached the maximum
     // amount of servers
-    while (i < ns.getPurchasedServerLimit()) {
+    while (true) {
+        let current_servers = ns.getPurchasedServers();
+        // Remove smallest server
+        if (current_servers.length === max_servers) {
+            let servers_ram = [];
+
+            for (let s = 0; s < current_servers.length; s++) {
+                let s_ram = ns.getServerMaxRam(current_servers[s]);
+                // ns.tprint(s_ram);
+                servers_ram.push(s_ram)
+            }
+
+            const min_ram = Math.min(...servers_ram);
+
+            let my_servers = []
+
+            for (let r = 0; r < current_servers.length; r++) {
+                my_servers.push({
+                    server_name: current_servers[r],
+                    server_RAM: servers_ram[r]
+                });
+            }
+
+            function findMinRAM(servers) {
+                return servers.server_RAM === min_ram;
+            }
+
+            const first_find = my_servers.find(findMinRAM);
+
+            if (first_find.server_RAM === ram) break;
+
+            ns.tprint(`Deleting server: ${first_find.server_name}`);
+            ns.killall(first_find.server_name);
+            ns.deleteServer(first_find.server_name);
+        }
+
         // Check if we have enough money to purchase a server
         if (ns.getServerMoneyAvailable("home") > ns.getPurchasedServerCost(ram)) {
-            // If we have enough money, then:
-            //  1. Purchase the server
-            //  2. Copy our hacking script onto the newly-purchased server
-            //  3. Run our hacking script on the newly-purchased server with 3 threads
-            //  4. Increment our iterator to indicate that we've bought a new server
-            const hostname = ns.purchaseServer("myServo-" + i, ram);
+
+            const hostname = ns.purchaseServer(`myServo-${ram}-${i}`, ram);
+            ns.tprint(`Hostname: ${hostname}`)
 
             await ns.scp("hack_template_v2.js", hostname);
 
@@ -25,7 +69,7 @@ export async function main(ns) {
             let serverRam = ns.getServerMaxRam(hostname);
             let threads = Math.floor(serverRam / scriptRam);
 
-            ns.exec("hack_template_v2.js", hostname, 2, "n00dles");
+            ns.exec("hack_template_v2.js", hostname, threads, server_to_hack);
 
             ++i;
         }
