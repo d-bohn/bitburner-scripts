@@ -80,5 +80,6 @@ export function hatchling(ns, hostname) {
             ns.tprint("nuked " + hostname + ".");
             return true;
         }
+        return true;
     }
 }
